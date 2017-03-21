@@ -85,11 +85,17 @@ RAMINIT:
        DEX
        BPL    RAMINIT
 
-;
+; At this point X = $FF, Y= $F7
+
+; Set volume of voice 0 to 7.
 
        STY    AUDV0
+
+
        JSR    LF3DD
        JSR    LF2E9
+
+;
        LDA    #$81
        STA    PF2
        LDA    #$01
@@ -98,18 +104,49 @@ RAMINIT:
        STA    CTRLPF
        STX    NUSIZ0
        STX    NUSIZ1
+
+; Pause CPU until start of next scan line on TV screen is reached.
+
        STA    WSYNC
+
+; These seemingly useless instructions wait for a total of 31 cycles which
+; will allow the player graphics to be placed at a specific location.
+; TODO: Work out the math on this.
+
        DEX
 LF03F: DEX
        BPL    LF03F
+
+; X=FF, A=01
+
+; Position the Player graphics
+
+; Storing any value in RESP0 and RESP1 causes Player 0 and Player 1 to reset to
+; the current position of the cathode ray beam.  If this happens during HBlank
+; (which the beam is in immediately following a WSYNC) then the position is
+; set to the leftmost position.
+
        STA    RESP1
        STA    RESP0
+
+; Move P1 three pixels left
+
        LDA    #$30
        STA    HMP1
+
+; Move P0 four pixels left
+
        LDA    #$40
        STA    HMP0
+
+; Block CPU until next CRT line
+
        STA    WSYNC
+
+; Cause the HMoves to happen
+
        STA    HMOVE
+
 LF052: LDA    #$02
        LDY    #$82
        STA    WSYNC
@@ -601,6 +638,9 @@ LF3D5: LDA    $A3
        BNE    LF426
        LDY    $D4
        BNE    LF40E
+
+;  Put value $77 in various memory locations.  Not sure why yet.
+
 LF3DD: LDY    #$19
        LDA    #$77
 LF3E1: LDX    LF662,Y
@@ -638,6 +678,8 @@ LF417: LDA    $DC
        JMP    LF5C8
 LF424: BEQ    LF46F
 LF426: RTS
+
+
 
 LF427: BNE    LF435
        LDX    $D2
