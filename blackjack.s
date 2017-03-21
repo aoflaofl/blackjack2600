@@ -1,48 +1,81 @@
+; Blackjack for the Atari 2600
+;
+; Written by Bob Whitehead in 1977 as one of the original launch titles.
+
+
 ; Disassembly of Blackjack.bin
 ; Disassembled Sun Mar 12 17:28:02 2017
 ; Using DiStella v3.01a
 ;
 ; Command Line: distella-301a\binaries\windows\DiStella.EXE -paf Blackjack.bin
-;
 
-; Blackjack for the Atari 2600
-; Originally coded by Bob Whitehead
-; One of the Atari 2600 original launch titles
 
-; Tell DASM which processor is used.
-; Technically the Atari 2600 uses a variant of the 6502
-; named the 6507 but the instruction codes are the same.
+; Tell DASM which processor is used. Technically the Atari 2600 uses a variant
+; of the 6502 named the 6507 but the instruction set is the same.
 
        processor 6502
 
-; Include a set of constants that point to important
-; memory locations in the Atari 2600 hardware.
+; Include a set of constants of important memory locations in the Atari 2600
+; hardware.
 
        include vcs.h
 
-; Tell the assembler to build the instructions starting at memory
-; location $F000.  This is the preferred convention, though the upper
-; three bits of the address are not used.  This was a cost cutting measure
-; for the 6507, and limits cartridge sizes (without using exotic bank switching schemes)
-; to 8k.
+; Tell the assembler to build the instructions starting at memory location
+; $F000.  This is the preferred convention, though the upper three bits of the
+; address are not used.  Having only 13 address lines was a cost cutting measure
+; for the 6507, and limits memory size to 2^13 = 8192 bytes.  Cartridge size
+; (without using bank switching) is limited to 4k.
 
        ORG $F000
 
 START:
+
+; Initialize the hardware.  Don't assume anything about the state of the machine
+; when powered up. The following code will make sure everything is set to
+; standard values.
+
+; Set Interrupts Disabled.  I'm not sure this is strictly necessary since
+; removing the interrupt function is another cost cutting feature of the 6507.
+
        SEI
+
+; Clear Decimal Arithmetic flag. This means the math functions will assume
+; binary arithmentic and not decimal arithmetic.
+
        CLD
+
+; Initialize stack pointer.
+
        LDX    #$FF
        TXS
+
+; Clear first 256 bytes of memory.
+; Simple Atari 2600 memory map:
+;   0000 - 002C -- TIA (write)
+;   0030 - 003D -- TIA (read)
+;   0080 - 00FF -- RIOT (128 bytes of RAM)
+;   0280 - 0297 -- RIOT (I/O, Timer)
+;   F000 - FFFF -- Cartridge (4K ROM)
+
        INX
        TXA
-LF007: STA    VSYNC,X
+CLEARMEM:
+       STA    VSYNC,X
        INX
-       BNE    LF007
+       BNE    CLEARMEM
+
+; Initialize Audio Volume and Frequency
+
        LDX    #$0F
        STX    AUDV1
        STX    AUDF1
+
+; Initialize RAM.  I don't know what these memory addresses are for yet
+; so I'll update them when I find out.
+
        INX
-LF013: LDA    LF7F3,X
+RAMINIT:
+       LDA    LF7F3,X
        STA    $D0,X
        LDY    #$F6
        STY    $86,X
@@ -50,7 +83,10 @@ LF013: LDA    LF7F3,X
        INY
        STY    $B7,X
        DEX
-       BPL    LF013
+       BPL    RAMINIT
+
+;
+
        STY    AUDV0
        JSR    LF3DD
        JSR    LF2E9
