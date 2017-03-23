@@ -105,36 +105,57 @@ RAMINIT:
        STX    NUSIZ0
        STX    NUSIZ1
 
-; Pause CPU until start of next scan line on TV screen is reached.
+; Pause CPU until start of next scan line on TV screen is reached.  WSYNC is
+; a "strobe" register which means writing any value to it will trigger it.
 
        STA    WSYNC
 
-; These seemingly useless instructions wait for a total of 31 cycles which
-; will allow the player graphics to be placed at a specific location.
-; TODO: Work out the math on this.
+; Coarse position the Player graphics
 
-       DEX
-LF03F: DEX
-       BPL    LF03F
+; The following seemingly useless instructions run for a total of 31 CPU
+; cycles.  This is being used for the coarse positioning of the P0 and P1
+; sprites.
 
-; X=FF, A=01
+       DEX           ; Takes 2 CPU cycles
+LF03F: DEX           ; Takes 2 CPU cycles
+       BPL    LF03F  ; Takes 3 CPU cycles if branch is taken, 2 if not
 
-; Position the Player graphics
+; As the above instructions run the cathode ray beam traces from left to right
+; across the screen, three pixel positions per CPU cycle.
 
-; Storing any value in RESP0 and RESP1 causes Player 0 and Player 1 to reset to
-; the current position of the cathode ray beam.  If this happens during HBlank
-; (which the beam is in immediately following a WSYNC) then the position is
-; set to the leftmost position.
+; A STore Accumulator instruction takes 3 cycles so at the end of the following
+; instruction the CPU cycle count for this screen line will be 31 + 3 = 34.
+
+; Storing any value ("strobing") to RESP0 and RESP1 causes Player 0 and Player 1
+; respectively to reset their position to the current pixel position of the
+; beam.  If this happens during HBlank (which the beam is in immediately
+; following a WSYNC and for the first 22 CPU cycles) then the position is; set
+; to pixel 3.
+
+; Once the beam is out of HBlank the pixel position is given by the formula:
+; (CPU Cycle - 21) * 3.
+
+; Since the CPU spends 34 cycles between the STA WSYNC and the end of the
+; STA RESP1 instructions, the beam is currently at the (34 - 21) * 3 = 39th
+; pixel.
 
        STA    RESP1
+
+; Same calculation as above, but starting from CPU Cycle 34 and adding 3 sets
+; the P0 sprite at 48 pixels.
+
        STA    RESP0
 
-; Move P1 three pixels left
+; Now fine tune player sprite positions.  Because of the complexity explained
+; above, it's hard (or impossible) to get the timing just right, so use the
+; Horizontal Move TIA registers to fine tune the positions.
+
+; Move P1 three pixels left.
 
        LDA    #$30
        STA    HMP1
 
-; Move P0 four pixels left
+; Move P0 four pixels left.
 
        LDA    #$40
        STA    HMP0
@@ -143,7 +164,8 @@ LF03F: DEX
 
        STA    WSYNC
 
-; Cause the HMoves to happen
+; Cause the HMoves to happen. Now P1 is positioned at 36 pixels and P0 is at 44
+; pixels.
 
        STA    HMOVE
 
