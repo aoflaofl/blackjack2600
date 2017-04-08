@@ -23,7 +23,7 @@
 ; Tell the assembler to build the instructions starting at memory location
 ; $F000.  This is the preferred convention, though the upper three bits of the
 ; address are not used.  Having only 13 address lines was a cost cutting measure
-; for the 6507, and limits memory size to 2^13 = 8192 bytes.  Cartridge size
+; for the 6507 and limits memory size to 2^13 = 8192 bytes.  Cartridge size
 ; (without using bank switching) is limited to 4k.
 
        ORG $F000
@@ -129,26 +129,33 @@ LF03F: DEX           ; Takes 2 CPU cycles
 ; Storing any value ("strobing") to RESP0 and RESP1 causes Player 0 and Player 1
 ; respectively to reset their position to the current pixel position of the
 ; beam.  If this happens during HBlank (which the beam is in immediately
-; following a WSYNC and for the first 22 CPU cycles) then the position is; set
+; following a WSYNC and for the first 22 CPU cycles) then the position is set
 ; to pixel 3.
 
 ; Once the beam is out of HBlank the pixel position is given by the formula:
 ; (CPU Cycle - 21) * 3.
 
 ; Since the CPU spends 34 cycles between the STA WSYNC and the end of the
-; STA RESP1 instructions, the beam is currently at the (34 - 21) * 3 = 39th
-; pixel.
+; STA RESP1 instruction the beam is currently at the (34 - 21) * 3 = 39th
+; pixel and that is where the P1 sprite will be set.
 
        STA    RESP1
 
 ; Same calculation as above, but starting from CPU Cycle 34 and adding 3 sets
-; the P0 sprite at 48 pixels.
+; the P0 sprite at (37 - 21) * 3 = 48 pixels from left border.
 
        STA    RESP0
 
-; Now fine tune player sprite positions.  Because of the complexity explained
-; above, it's hard (or impossible) to get the timing just right, so use the
-; Horizontal Move TIA registers to fine tune the positions.
+; Fine tune Player sprite positions
+
+; Because of the coarsness explained above it's hard (or impossible) to get the
+; position just right, so use the Horizontal Move TIA registers to fine tune the
+; positions.
+
+; The Horizontal Move registers use the 4 high bits of the value put in
+; them and read it in twos complement form.  Positive values move the position
+; left, negative values move right.  These moves will not take effect until
+; the HMOVE register is strobed.
 
 ; Move P1 three pixels left.
 
@@ -160,27 +167,46 @@ LF03F: DEX           ; Takes 2 CPU cycles
        LDA    #$40
        STA    HMP0
 
-; Block CPU until next CRT line
+; Block CPU until next scan line.
 
        STA    WSYNC
 
 ; Cause the HMoves to happen. Now P1 is positioned at 36 pixels and P0 is at 44
-; pixels.
+; pixels.  Strobing HMOVE should normally take place immediately after strobing
+; WSYNC.
 
        STA    HMOVE
+
+; Begin the screen drawing kernel
+
+; First tell the TV to do a Vertical Sync (VSYNC) by writing a 1 into bit D1
+; of the VSYNC register and then doing 3 WSYNCs before turning that bit off.
+; VSYNC  is not a strobe register, it's under the program's control.
 
 LF052: LDA    #$02
        LDY    #$82
        STA    WSYNC
        STY    VSYNC
        STY    VBLANK
-       STA    WSYNC
-       STA    WSYNC
+       STA    WSYNC  ; First WSYNC
+       STA    WSYNC  ; Second WSYNC
        LDY    #$00
-       STA    WSYNC
+       STA    WSYNC  ; Third WSYNC
+
+; After 3 WSYNCs turn off VSYNC
+
        STY    VSYNC
+
+; Now the 2600 is in VBLANK which needs to last for 37 scan lines.  The usual
+; way this is done is to set a timer to
+; count down the time.
+
+; Store $28 (decimal 40) into the TIM64T register, which counts down the INTIM register once each
+; 64 CPU cycles.  TODO: The math to show how many cycles/scan lines are used up.
+
        LDX    #$28
        STX    TIM64T
+
        JSR    LF27D
        INC    $A7
        LDA    $A7
@@ -240,9 +266,17 @@ LF09A: LDA    $E8
        EOR    $EA,X
        STA    $EA,X
        DEC    $9B
-LF0DA: LDA    INTIM
-       BNE    LF0DA
+
+; Wait for timer to count down, then store 0 in VBLANK (because A will have 0 in it when
+; the loop completes) to tell the TV to start displaying
+; again.
+
+WaitForTimer:
+       LDA    INTIM
+       BNE    WaitForTimer
        STA    VBLANK
+
+
        LDY    #$80
        STY    $C8
        LDA    #$01
