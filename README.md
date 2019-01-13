@@ -1,3 +1,5 @@
+### Disassembly of Atari 2600 Blackjack
+
 I read on Reddit that someone thought the Blackjack game on the Atari 2600 cheated by dealing itself winning hands when it was losing.
 
 I've heard rumors like this before.  For instance my brother swore the Backgammon game on the Atari 2600 rolled itself double sixes more frequently near the end of the game.

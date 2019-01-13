@@ -1,17 +1,27 @@
 ; Blackjack for the Atari 2600
 ;
-; Written by Bob Whitehead in 1977 as one of the original launch titles.
+; Written by Bob Whitehead in 1977 as one of the original Atari 2600 launch
+; titles.
 
+; The code is unaltered.  I am adding comments to explain the ins and outs of
+; programming the Atari 2600.
 
+; Disassembly Information
+;------------------------
 ; Disassembly of Blackjack.bin
 ; Disassembled Sun Mar 12 17:28:02 2017
 ; Using DiStella v3.01a
 ;
 ; Command Line: distella-301a\binaries\windows\DiStella.EXE -paf Blackjack.bin
 
+; Assembly Information
+; --------------------
+; To assemble using DASM: dasm blackjack.s -f3 -oblackjack.bin
 
-; Tell DASM which processor is used. Technically the Atari 2600 uses a variant
-; of the 6502 named the 6507 but the instruction set is the same.
+
+; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
+; less expensive) variant of the 6502, named the 6507, but the instruction set
+; is the same.
 
        processor 6502
 
@@ -24,38 +34,44 @@
 ; $F000.  This is the preferred convention, though the upper three bits of the
 ; address are not used.  Having only 13 address lines was a cost cutting measure
 ; for the 6507 and limits memory size to 2^13 = 8192 bytes.  Cartridge size
-; (without using bank switching) is limited to 4k.
+; (without using bank switching) is further limited to 4k.  This cartridge only
+; uses 2k.
 
        ORG $F000
 
 START:
 
-; Initialize the hardware.  Don't assume anything about the state of the machine
-; when powered up. The following code will make sure everything is set to
-; standard values.
+; Initialize the hardware.  A best practice is to assume nothing about the
+; state of the machine when powered up. The following code will make sure
+; everything is set to standard values.
 
 ; Set Interrupts Disabled.  I'm not sure this is strictly necessary since
 ; removing the interrupt function is another cost cutting feature of the 6507.
 
        SEI
 
-; Clear Decimal Arithmetic flag. This means the math functions will assume
-; binary arithmentic and not decimal arithmetic.
+; Clear Decimal Arithmetic flag. This means the math commands will assume
+; binary arithmetic and not decimal arithmetic.
 
        CLD
 
-; Initialize stack pointer.
+; Initialize stack pointer.  The Atari 2600 has only 128 bytes of ram, from $80
+; to $FF.  The stack pointer is set to $FF.  This means the programmer needs to
+; be very careful about using stack space so it doesn't overwrite stored values.
 
-       LDX    #$FF
-       TXS
-
-; Clear first 256 bytes of memory.
 ; Simple Atari 2600 memory map:
 ;   0000 - 002C -- TIA (write)
 ;   0030 - 003D -- TIA (read)
 ;   0080 - 00FF -- RIOT (128 bytes of RAM)
 ;   0280 - 0297 -- RIOT (I/O, Timer)
 ;   F000 - FFFF -- Cartridge (4K ROM)
+
+       LDX    #$FF
+       TXS
+
+; Write Zeros into the first 256 bytes of memory.  This clears the TIA
+; (Television Interface Adapter) chip and the RAM part of the RIOT (RAM, I/O,
+; Timer) chip.
 
        INX
        TXA
@@ -105,8 +121,9 @@ RAMINIT:
        STX    NUSIZ0
        STX    NUSIZ1
 
-; Pause CPU until start of next scan line on TV screen is reached.  WSYNC is
-; a "strobe" register which means writing any value to it will trigger it.
+; Pause CPU until the electron beam reaches the start of the next scan line on
+; the TV screen.  WSYNC is a "strobe" register which means writing any value to
+; it (including 0) will trigger it.
 
        STA    WSYNC
 
@@ -185,6 +202,7 @@ LF03F: DEX           ; Takes 2 CPU cycles
 
 LF052: LDA    #$02
        LDY    #$82
+; WSYNC is a strobe register
        STA    WSYNC
        STY    VSYNC
        STY    VBLANK
@@ -193,7 +211,7 @@ LF052: LDA    #$02
        LDY    #$00
        STA    WSYNC  ; Third WSYNC
 
-; After 3 WSYNCs turn off VSYNC
+; After 3 WSYNCs turn off VSYNC by writing 0 into VSYNC
 
        STY    VSYNC
 
@@ -267,13 +285,14 @@ LF09A: LDA    $E8
        STA    $EA,X
        DEC    $9B
 
-; Wait for timer to count down, then store 0 in VBLANK (because A will have 0 in it when
-; the loop completes) to tell the TV to start displaying
-; again.
+; Wait for timer to count down to 0
 
 WaitForTimer:
        LDA    INTIM
        BNE    WaitForTimer
+
+; Then store 0 in VBLANK (because A will have 0 in it when the loop completes) ; to tell the TV to start displaying again.
+
        STA    VBLANK
 
 
@@ -703,6 +722,8 @@ LF3E1: LDX    LF662,Y
        STA    $80,X
        DEY
        BNE    LF3E1
+
+
        STY    $9F
        LDX    #$02
 LF3ED: LDA    $86,X
