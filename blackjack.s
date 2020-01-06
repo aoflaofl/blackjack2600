@@ -80,7 +80,9 @@ CLEARMEM:
        INX
        BNE    CLEARMEM
 
-; Initialize Audio Volume and Frequency
+; Initialize Audio Volume and Frequency of tone generator 1.  $0F (=15) is the 
+; maximum volume, since the volume registers are 4 bits.
+; That value would be in the middle of the frequency range, which is 5 bits. 
 
        LDX    #$0F
        STX    AUDV1
