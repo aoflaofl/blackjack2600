@@ -109,17 +109,26 @@ RAMINIT:
 
        STY    AUDV0
 
+; Init RAM and do RNG calculations?
 
        JSR    LF3DD
        JSR    LF2E9
 
-;
+; Initialize the screen graphics.
+; The sprites don't move during the game so they will be put in position once
+; and stay there.
+
+; Init Playfield graphics
+
        LDA    #$81
        STA    PF2
        LDA    #$01
        LDX    #$06
        STA    PF1
        STA    CTRLPF
+
+; Set Player graphics to show 3 copies
+
        STX    NUSIZ0
        STX    NUSIZ1
 
@@ -190,7 +199,7 @@ LF03F: DEX           ; Takes 2 CPU cycles
 
        STA    WSYNC
 
-; Cause the HMoves to happen. Now P1 is positioned at 36 pixels and P0 is at 44
+; Cause the HMoves to happen. Now P1 is positioned at 39-3=36 pixels and P0	 is at 48-4=44
 ; pixels.  Strobing HMOVE should normally take place immediately after strobing
 ; WSYNC.
 
