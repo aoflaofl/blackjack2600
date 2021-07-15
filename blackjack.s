@@ -20,7 +20,7 @@
 
 
 ; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
-; less expensive) variant of the 6502, named the 6507, but the instruction set
+; less expensive) variant of the 6502 named the 6507, but the instruction set
 ; is the same.
 
        processor 6502
@@ -45,7 +45,7 @@ START:
 ; state of the machine when powered up. The following code will make sure
 ; everything is set to standard values.
 
-; Set Interrupts Disabled.  I'm not sure this is strictly necessary since
+; Set Interrupts Disabled.  TODO: I'm not sure this is strictly necessary since
 ; removing the interrupt function is another cost cutting feature of the 6507.
 
        SEI
@@ -55,16 +55,19 @@ START:
 
        CLD
 
+; Simple Atari 2600 memory map:
+;   TIA - Telivision Interface Adapter Chip
+;     0000 - 002C -- TIA (write)
+;     0030 - 003D -- TIA (read)
+;   RIOT - RAM, IO, Timers Chip
+;     0080 - 00FF -- RIOT (128 bytes of RAM)
+;     0280 - 0297 -- RIOT (I/O, Timer)
+;   Cartridge
+;     F000 - FFFF -- 4K ROM
+
 ; Initialize stack pointer.  The Atari 2600 has only 128 bytes of ram, from $80
 ; to $FF.  The stack pointer is set to $FF.  This means the programmer needs to
 ; be very careful about using stack space so it doesn't overwrite stored values.
-
-; Simple Atari 2600 memory map:
-;   0000 - 002C -- TIA (write)
-;   0030 - 003D -- TIA (read)
-;   0080 - 00FF -- RIOT (128 bytes of RAM)
-;   0280 - 0297 -- RIOT (I/O, Timer)
-;   F000 - FFFF -- Cartridge (4K ROM)
 
        LDX    #$FF
        TXS
@@ -115,17 +118,26 @@ RAMINIT:
        JSR    LF2E9
 
 ; Initialize the screen graphics.
-; The sprites don't move during the game so they will be put in position once
-; and stay there.
 
 ; Init Playfield graphics
+;
+;  PF0   PF1       PF1
+; 4567 76543210 01234567
+; 0000 00000001 10000001
 
        LDA    #$81
        STA    PF2
        LDA    #$01
-       LDX    #$06
+       LDX    #$06 ; BUG: Why is this here?
        STA    PF1
+
+; Putting a $01 in CTRLPF sets it to reflect the
+; playfield.
+
        STA    CTRLPF
+
+; The sprites don't move during the game so they will be put in position once
+; and stay there.
 
 ; Set Player graphics to show 3 copies
 
@@ -211,6 +223,8 @@ LF03F: DEX           ; Takes 2 CPU cycles
 ; of the VSYNC register and then doing 3 WSYNCs before turning that bit off.
 ; VSYNC  is not a strobe register, it's under the program's control.
 
+; Start Frame
+
 LF052: LDA    #$02
        LDY    #$82
 ; WSYNC is a strobe register
@@ -231,7 +245,11 @@ LF052: LDA    #$02
 ; count down the time.
 
 ; Store $28 (decimal 40) into the TIM64T register, which counts down the INTIM register once each
-; 64 CPU cycles.  TODO: The math to show how many cycles/scan lines are used up.
+; 64 CPU cycles.  TODO: The math to show how many cycles/scan lines are used up.  The program will
+; continue running.  Later the INTIM register will be checked until it is 0 which means the timer is
+; done.
+
+; Start Frame
 
        LDX    #$28
        STX    TIM64T
@@ -267,9 +285,9 @@ LF09A: LDA    $E8
        ROL    $E9
        ROL    $E8
        LDX    $9B
-       BEQ    LF0DA
+       BEQ    WaitForTimer
        LDA    $A3
-       BNE    LF0DA
+       BNE    WaitForTimer
        CLC
        ADC    #$03
        STA    $A3
@@ -288,10 +306,10 @@ LF09A: LDA    $E8
        AND    #$FD
        STA    $AB
        CMP    #$34
-       BCS    LF0DA
+       BCS    WaitForTimer
        LDA    $EA,X
        AND    LF7E4,Y
-       BEQ    LF0DA
+       BEQ    WaitForTimer
        EOR    $EA,X
        STA    $EA,X
        DEC    $9B
@@ -302,10 +320,11 @@ WaitForTimer:
        LDA    INTIM
        BNE    WaitForTimer
 
-; Then store 0 in VBLANK (because A will have 0 in it when the loop completes) ; to tell the TV to start displaying again.
+; Then store 0 in VBLANK (because A will have 0 in it when the loop completes) to tell the TV to start displaying again.
 
        STA    VBLANK
 
+; Now at scan line 33.
 
        LDY    #$80
        STY    $C8
@@ -452,6 +471,7 @@ LF19E: STA    GRP1
 
 LF1E4: STA    $C6
 LF1E6: STA    WSYNC
+; Scan line 34
        LDA    $CD
        STA    COLUP0
        LDA    #$FF
@@ -477,11 +497,14 @@ LF1F6: LDY    #$00
        INC    $C8
 LF214: SED
 LF215: STA    WSYNC
+; Scan line 37
        LDA    ($B4),Y
        STA    GRP0
        LDA    $BA
        STA    COLUP0
        LDX    $AF
+
+; Read the Paddle
        LDA    INPT0,X
        EOR    #$FF
        ASL
