@@ -968,8 +968,14 @@ LF562: STA    $D9,X
        BPL    LF562
        LDX    #$03
        LDA    $80
+
+; Issue a NMI, which jumps to F769 (The address stored at the FFFA vector)
+
        BRK
        BRK
+
+; The return point of the NMI
+
        LDA    $D2
        BRK
        BRK
