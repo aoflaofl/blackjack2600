@@ -438,6 +438,9 @@ LF197: LDA    ($B8),Y
        PHA
        LDA    ($C6),Y
 LF19E: STA    GRP1
+
+; TODO: Has something to do with the count up/down for wins/losses.
+; Load the digit data.
        LDA    ($C0),Y
        ORA    ($BE),Y
        STA    GRP0
