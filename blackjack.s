@@ -9,21 +9,29 @@
 ; Disassembly Information
 ;------------------------
 ; Disassembly of Blackjack.bin
-; Disassembled Sun Mar 12 17:28:02 2017
+; Disassembled Thu Jul 15 18:45:51 2021
 ; Using DiStella v3.01a
 ;
-; Command Line: distella-301a\binaries\windows\DiStella.EXE -paf Blackjack.bin
+; Command Line: distella-301a\binaries\windows\DiStella.EXE -pabf -cblackjack.cfg Blackjack.bin
+;
+; blackjack.cfg contents:
+;
+;      GFX f680 f768
+;      GFX f780 f7b1
+;      GFX f7b7 f7de
 
 ; Assembly Information
 ; --------------------
-; To assemble using DASM: dasm blackjack.s -f3 -oblackjack.bin
+; To assemble using DASM: dasm blackjack.s -f3 -oBlackjack.bin
 
+; sha256sum.exe "Blackjack.bin"
+; 8333eb40ab694f123f4d3335df8fdde4ea0aa1cf2b35ad89a1aa526ec1ae5163 *Blackjack.bin
 
 ; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
 ; less expensive) variant of the 6502 named the 6507, but the instruction set
 ; is the same.
 
-       processor 6502
+      processor 6502
 
 ; Include a set of constants of important memory locations in the Atari 2600
 ; hardware.
@@ -83,9 +91,9 @@ CLEARMEM:
        INX
        BNE    CLEARMEM
 
-; Initialize Audio Volume and Frequency of tone generator 1.  $0F (=15) is the 
+; Initialize Audio Volume and Frequency of tone generator 1.  $0F (=15) is the
 ; maximum volume, since the volume registers are 4 bits.
-; That value would be in the middle of the frequency range, which is 5 bits. 
+; That value would be in the middle of the frequency range, which is 5 bits.
 
        LDX    #$0F
        STX    AUDV1
@@ -1115,32 +1123,349 @@ LF651: STA    $92,X
 LF662: RTS
 
 LF663: .byte $1A,$19,$18,$00,$1E,$1D,$1C,$01,$22,$26,$2A,$2E,$21,$25,$29,$2D
-       .byte $20,$24,$28,$2C,$01,$02,$03,$04,$05,$00,$01,$02,$03,$00,$22,$22
-       .byte $22,$3E,$22,$22,$1C,$00,$3E,$20,$20,$3E,$02,$02,$3E,$00,$3E,$02
-       .byte $02,$0E,$02,$02,$3E,$00,$04,$04,$04,$3E,$24,$24,$20,$00,$3E,$02
-       .byte $02,$3E,$20,$20,$3E,$00,$3E,$22,$22,$3E,$20,$20,$3E,$00,$02,$02
-       .byte $02,$02,$02,$02,$3E,$00,$3E,$22,$22,$3E,$22,$22,$3E,$00,$3E,$02
-       .byte $02,$3E,$22,$22,$3E,$00,$2E,$2A,$2A,$2A,$2A,$2A,$2E,$00,$3C,$24
-       .byte $04,$04,$04,$04,$0E,$00,$02,$3C,$2C,$24,$24,$24,$3C,$00,$22,$24
-       .byte $28,$30,$28,$24,$22
-LF6E8: .byte $00,$60,$10,$21,$FF,$3F,$7F,$3F,$C7,$D5,$D5,$F8,$FF,$FF,$FF,$FF
-       .byte $FF,$FF,$FF,$FF,$FF
-LF6FD: .byte $80,$40,$08,$70,$50,$50,$50,$70,$20,$20,$20,$20,$20,$70,$40,$70
-       .byte $10,$70,$70,$10,$30,$10,$70,$10,$10,$70,$50,$40,$70,$10,$70,$40
-       .byte $70,$70,$50,$70,$40,$70,$10,$10,$10,$10,$70,$70,$50,$70,$50,$70
-       .byte $70,$10,$70,$50,$70,$17,$15,$15,$15,$17,$00,$00,$00,$00,$00,$94
-       .byte $94,$F4,$94,$95,$E4,$24,$E4,$84,$EE,$EE,$AA,$AE,$AA,$EE,$07,$05
-       .byte $07,$05,$07,$77,$55,$75,$55,$75,$6D,$55,$45,$45,$45,$77,$45,$45
-       .byte $45,$47,$25,$25,$25,$25,$75,$20,$00,$30,$10,$70,$4A,$4A,$4A,$C9
-       .byte $0A,$90,$02,$A9,$09,$C9,$00,$D0,$04,$A0,$0A,$94,$DD,$38,$75,$D9
-       .byte $95,$D9,$40,$07,$05,$05,$05,$07,$02,$02,$02,$02,$02,$07,$04,$07
-       .byte $01,$07,$07,$01,$03,$01,$07,$01,$01,$07,$05,$04,$07,$01,$07,$04
-       .byte $07,$07,$05,$07,$04,$07,$01,$01,$01,$01,$07,$07,$05,$07,$05,$07
-       .byte $07,$01,$07,$05
-LF7B1: .byte $07,$3E,$31,$F0,$FE,$51,$00,$00,$00,$00,$00,$80,$80,$80,$80,$C0
-       .byte $A4,$A4,$E4,$AE,$EA,$EE,$88,$8C,$88,$8E,$70,$50,$10,$10,$38,$72
-       .byte $12,$72,$42,$77,$44,$4C,$54,$64,$44,$77,$14,$76,$44,$77,$C0,$00
-       .byte $80,$00,$C0
+       .byte $20,$24,$28,$2C,$01,$02,$03,$04,$05,$00,$01,$02,$03
+       .byte $00 ; |        | $F680
+       .byte $22 ; |  X   X | $F681
+       .byte $22 ; |  X   X | $F682
+       .byte $22 ; |  X   X | $F683
+       .byte $3E ; |  XXXXX | $F684
+       .byte $22 ; |  X   X | $F685
+       .byte $22 ; |  X   X | $F686
+       .byte $1C ; |   XXX  | $F687
+       .byte $00 ; |        | $F688
+       .byte $3E ; |  XXXXX | $F689
+       .byte $20 ; |  X     | $F68A
+       .byte $20 ; |  X     | $F68B
+       .byte $3E ; |  XXXXX | $F68C
+       .byte $02 ; |      X | $F68D
+       .byte $02 ; |      X | $F68E
+       .byte $3E ; |  XXXXX | $F68F
+       .byte $00 ; |        | $F690
+       .byte $3E ; |  XXXXX | $F691
+       .byte $02 ; |      X | $F692
+       .byte $02 ; |      X | $F693
+       .byte $0E ; |    XXX | $F694
+       .byte $02 ; |      X | $F695
+       .byte $02 ; |      X | $F696
+       .byte $3E ; |  XXXXX | $F697
+       .byte $00 ; |        | $F698
+       .byte $04 ; |     X  | $F699
+       .byte $04 ; |     X  | $F69A
+       .byte $04 ; |     X  | $F69B
+       .byte $3E ; |  XXXXX | $F69C
+       .byte $24 ; |  X  X  | $F69D
+       .byte $24 ; |  X  X  | $F69E
+       .byte $20 ; |  X     | $F69F
+       .byte $00 ; |        | $F6A0
+       .byte $3E ; |  XXXXX | $F6A1
+       .byte $02 ; |      X | $F6A2
+       .byte $02 ; |      X | $F6A3
+       .byte $3E ; |  XXXXX | $F6A4
+       .byte $20 ; |  X     | $F6A5
+       .byte $20 ; |  X     | $F6A6
+       .byte $3E ; |  XXXXX | $F6A7
+       .byte $00 ; |        | $F6A8
+       .byte $3E ; |  XXXXX | $F6A9
+       .byte $22 ; |  X   X | $F6AA
+       .byte $22 ; |  X   X | $F6AB
+       .byte $3E ; |  XXXXX | $F6AC
+       .byte $20 ; |  X     | $F6AD
+       .byte $20 ; |  X     | $F6AE
+       .byte $3E ; |  XXXXX | $F6AF
+       .byte $00 ; |        | $F6B0
+       .byte $02 ; |      X | $F6B1
+       .byte $02 ; |      X | $F6B2
+       .byte $02 ; |      X | $F6B3
+       .byte $02 ; |      X | $F6B4
+       .byte $02 ; |      X | $F6B5
+       .byte $02 ; |      X | $F6B6
+       .byte $3E ; |  XXXXX | $F6B7
+       .byte $00 ; |        | $F6B8
+       .byte $3E ; |  XXXXX | $F6B9
+       .byte $22 ; |  X   X | $F6BA
+       .byte $22 ; |  X   X | $F6BB
+       .byte $3E ; |  XXXXX | $F6BC
+       .byte $22 ; |  X   X | $F6BD
+       .byte $22 ; |  X   X | $F6BE
+       .byte $3E ; |  XXXXX | $F6BF
+       .byte $00 ; |        | $F6C0
+       .byte $3E ; |  XXXXX | $F6C1
+       .byte $02 ; |      X | $F6C2
+       .byte $02 ; |      X | $F6C3
+       .byte $3E ; |  XXXXX | $F6C4
+       .byte $22 ; |  X   X | $F6C5
+       .byte $22 ; |  X   X | $F6C6
+       .byte $3E ; |  XXXXX | $F6C7
+       .byte $00 ; |        | $F6C8
+       .byte $2E ; |  X XXX | $F6C9
+       .byte $2A ; |  X X X | $F6CA
+       .byte $2A ; |  X X X | $F6CB
+       .byte $2A ; |  X X X | $F6CC
+       .byte $2A ; |  X X X | $F6CD
+       .byte $2A ; |  X X X | $F6CE
+       .byte $2E ; |  X XXX | $F6CF
+       .byte $00 ; |        | $F6D0
+       .byte $3C ; |  XXXX  | $F6D1
+       .byte $24 ; |  X  X  | $F6D2
+       .byte $04 ; |     X  | $F6D3
+       .byte $04 ; |     X  | $F6D4
+       .byte $04 ; |     X  | $F6D5
+       .byte $04 ; |     X  | $F6D6
+       .byte $0E ; |    XXX | $F6D7
+       .byte $00 ; |        | $F6D8
+       .byte $02 ; |      X | $F6D9
+       .byte $3C ; |  XXXX  | $F6DA
+       .byte $2C ; |  X XX  | $F6DB
+       .byte $24 ; |  X  X  | $F6DC
+       .byte $24 ; |  X  X  | $F6DD
+       .byte $24 ; |  X  X  | $F6DE
+       .byte $3C ; |  XXXX  | $F6DF
+       .byte $00 ; |        | $F6E0
+       .byte $22 ; |  X   X | $F6E1
+       .byte $24 ; |  X  X  | $F6E2
+       .byte $28 ; |  X X   | $F6E3
+       .byte $30 ; |  XX    | $F6E4
+       .byte $28 ; |  X X   | $F6E5
+       .byte $24 ; |  X  X  | $F6E6
+       .byte $22 ; |  X   X | $F6E7
+LF6E8: .byte $00 ; |        | $F6E8
+       .byte $60 ; | XX     | $F6E9
+       .byte $10 ; |   X    | $F6EA
+       .byte $21 ; |  X    X| $F6EB
+       .byte $FF ; |XXXXXXXX| $F6EC
+       .byte $3F ; |  XXXXXX| $F6ED
+       .byte $7F ; | XXXXXXX| $F6EE
+       .byte $3F ; |  XXXXXX| $F6EF
+       .byte $C7 ; |XX   XXX| $F6F0
+       .byte $D5 ; |XX X X X| $F6F1
+       .byte $D5 ; |XX X X X| $F6F2
+       .byte $F8 ; |XXXXX   | $F6F3
+       .byte $FF ; |XXXXXXXX| $F6F4
+       .byte $FF ; |XXXXXXXX| $F6F5
+       .byte $FF ; |XXXXXXXX| $F6F6
+       .byte $FF ; |XXXXXXXX| $F6F7
+       .byte $FF ; |XXXXXXXX| $F6F8
+       .byte $FF ; |XXXXXXXX| $F6F9
+       .byte $FF ; |XXXXXXXX| $F6FA
+       .byte $FF ; |XXXXXXXX| $F6FB
+       .byte $FF ; |XXXXXXXX| $F6FC
+LF6FD: .byte $80 ; |X       | $F6FD
+       .byte $40 ; | X      | $F6FE
+       .byte $08 ; |    X   | $F6FF
+       .byte $70 ; | XXX    | $F700
+       .byte $50 ; | X X    | $F701
+       .byte $50 ; | X X    | $F702
+       .byte $50 ; | X X    | $F703
+       .byte $70 ; | XXX    | $F704
+       .byte $20 ; |  X     | $F705
+       .byte $20 ; |  X     | $F706
+       .byte $20 ; |  X     | $F707
+       .byte $20 ; |  X     | $F708
+       .byte $20 ; |  X     | $F709
+       .byte $70 ; | XXX    | $F70A
+       .byte $40 ; | X      | $F70B
+       .byte $70 ; | XXX    | $F70C
+       .byte $10 ; |   X    | $F70D
+       .byte $70 ; | XXX    | $F70E
+       .byte $70 ; | XXX    | $F70F
+       .byte $10 ; |   X    | $F710
+       .byte $30 ; |  XX    | $F711
+       .byte $10 ; |   X    | $F712
+       .byte $70 ; | XXX    | $F713
+       .byte $10 ; |   X    | $F714
+       .byte $10 ; |   X    | $F715
+       .byte $70 ; | XXX    | $F716
+       .byte $50 ; | X X    | $F717
+       .byte $40 ; | X      | $F718
+       .byte $70 ; | XXX    | $F719
+       .byte $10 ; |   X    | $F71A
+       .byte $70 ; | XXX    | $F71B
+       .byte $40 ; | X      | $F71C
+       .byte $70 ; | XXX    | $F71D
+       .byte $70 ; | XXX    | $F71E
+       .byte $50 ; | X X    | $F71F
+       .byte $70 ; | XXX    | $F720
+       .byte $40 ; | X      | $F721
+       .byte $70 ; | XXX    | $F722
+       .byte $10 ; |   X    | $F723
+       .byte $10 ; |   X    | $F724
+       .byte $10 ; |   X    | $F725
+       .byte $10 ; |   X    | $F726
+       .byte $70 ; | XXX    | $F727
+       .byte $70 ; | XXX    | $F728
+       .byte $50 ; | X X    | $F729
+       .byte $70 ; | XXX    | $F72A
+       .byte $50 ; | X X    | $F72B
+       .byte $70 ; | XXX    | $F72C
+       .byte $70 ; | XXX    | $F72D
+       .byte $10 ; |   X    | $F72E
+       .byte $70 ; | XXX    | $F72F
+       .byte $50 ; | X X    | $F730
+       .byte $70 ; | XXX    | $F731
+       .byte $17 ; |   X XXX| $F732
+       .byte $15 ; |   X X X| $F733
+       .byte $15 ; |   X X X| $F734
+       .byte $15 ; |   X X X| $F735
+       .byte $17 ; |   X XXX| $F736
+       .byte $00 ; |        | $F737
+       .byte $00 ; |        | $F738
+       .byte $00 ; |        | $F739
+       .byte $00 ; |        | $F73A
+       .byte $00 ; |        | $F73B
+       .byte $94 ; |X  X X  | $F73C
+       .byte $94 ; |X  X X  | $F73D
+       .byte $F4 ; |XXXX X  | $F73E
+       .byte $94 ; |X  X X  | $F73F
+       .byte $95 ; |X  X X X| $F740
+       .byte $E4 ; |XXX  X  | $F741
+       .byte $24 ; |  X  X  | $F742
+       .byte $E4 ; |XXX  X  | $F743
+       .byte $84 ; |X    X  | $F744
+       .byte $EE ; |XXX XXX | $F745
+       .byte $EE ; |XXX XXX | $F746
+       .byte $AA ; |X X X X | $F747
+       .byte $AE ; |X X XXX | $F748
+       .byte $AA ; |X X X X | $F749
+       .byte $EE ; |XXX XXX | $F74A
+       .byte $07 ; |     XXX| $F74B
+       .byte $05 ; |     X X| $F74C
+       .byte $07 ; |     XXX| $F74D
+       .byte $05 ; |     X X| $F74E
+       .byte $07 ; |     XXX| $F74F
+       .byte $77 ; | XXX XXX| $F750
+       .byte $55 ; | X X X X| $F751
+       .byte $75 ; | XXX X X| $F752
+       .byte $55 ; | X X X X| $F753
+       .byte $75 ; | XXX X X| $F754
+       .byte $6D ; | XX XX X| $F755
+       .byte $55 ; | X X X X| $F756
+       .byte $45 ; | X   X X| $F757
+       .byte $45 ; | X   X X| $F758
+       .byte $45 ; | X   X X| $F759
+       .byte $77 ; | XXX XXX| $F75A
+       .byte $45 ; | X   X X| $F75B
+       .byte $45 ; | X   X X| $F75C
+       .byte $45 ; | X   X X| $F75D
+       .byte $47 ; | X   XXX| $F75E
+       .byte $25 ; |  X  X X| $F75F
+       .byte $25 ; |  X  X X| $F760
+       .byte $25 ; |  X  X X| $F761
+       .byte $25 ; |  X  X X| $F762
+       .byte $75 ; | XXX X X| $F763
+       .byte $20 ; |  X     | $F764
+       .byte $00 ; |        | $F765
+       .byte $30 ; |  XX    | $F766
+       .byte $10 ; |   X    | $F767
+       .byte $70 ; | XXX    | $F768
+
+BRK_ROUTINE:
+LF769: LSR
+       LSR
+       LSR
+       CMP    #$0A
+       BCC    LF772
+       LDA    #$09
+LF772: CMP    #$00
+       BNE    LF77A
+       LDY    #$0A
+       STY    $DD,X
+LF77A: SEC
+       ADC    $D9,X
+       STA    $D9,X
+       RTI
+
+       .byte $07 ; |     XXX| $F780
+       .byte $05 ; |     X X| $F781
+       .byte $05 ; |     X X| $F782
+       .byte $05 ; |     X X| $F783
+       .byte $07 ; |     XXX| $F784
+       .byte $02 ; |      X | $F785
+       .byte $02 ; |      X | $F786
+       .byte $02 ; |      X | $F787
+       .byte $02 ; |      X | $F788
+       .byte $02 ; |      X | $F789
+       .byte $07 ; |     XXX| $F78A
+       .byte $04 ; |     X  | $F78B
+       .byte $07 ; |     XXX| $F78C
+       .byte $01 ; |       X| $F78D
+       .byte $07 ; |     XXX| $F78E
+       .byte $07 ; |     XXX| $F78F
+       .byte $01 ; |       X| $F790
+       .byte $03 ; |      XX| $F791
+       .byte $01 ; |       X| $F792
+       .byte $07 ; |     XXX| $F793
+       .byte $01 ; |       X| $F794
+       .byte $01 ; |       X| $F795
+       .byte $07 ; |     XXX| $F796
+       .byte $05 ; |     X X| $F797
+       .byte $04 ; |     X  | $F798
+       .byte $07 ; |     XXX| $F799
+       .byte $01 ; |       X| $F79A
+       .byte $07 ; |     XXX| $F79B
+       .byte $04 ; |     X  | $F79C
+       .byte $07 ; |     XXX| $F79D
+       .byte $07 ; |     XXX| $F79E
+       .byte $05 ; |     X X| $F79F
+       .byte $07 ; |     XXX| $F7A0
+       .byte $04 ; |     X  | $F7A1
+       .byte $07 ; |     XXX| $F7A2
+       .byte $01 ; |       X| $F7A3
+       .byte $01 ; |       X| $F7A4
+       .byte $01 ; |       X| $F7A5
+       .byte $01 ; |       X| $F7A6
+       .byte $07 ; |     XXX| $F7A7
+       .byte $07 ; |     XXX| $F7A8
+       .byte $05 ; |     X X| $F7A9
+       .byte $07 ; |     XXX| $F7AA
+       .byte $05 ; |     X X| $F7AB
+       .byte $07 ; |     XXX| $F7AC
+       .byte $07 ; |     XXX| $F7AD
+       .byte $01 ; |       X| $F7AE
+       .byte $07 ; |     XXX| $F7AF
+       .byte $05 ; |     X X| $F7B0
+LF7B1: .byte $07 ; |     XXX| $F7B1
+LF7B2: .byte $3E,$31,$F0,$FE,$51
+       .byte $00 ; |        | $F7B7
+       .byte $00 ; |        | $F7B8
+       .byte $00 ; |        | $F7B9
+       .byte $00 ; |        | $F7BA
+       .byte $00 ; |        | $F7BB
+       .byte $80 ; |X       | $F7BC
+       .byte $80 ; |X       | $F7BD
+       .byte $80 ; |X       | $F7BE
+       .byte $80 ; |X       | $F7BF
+       .byte $C0 ; |XX      | $F7C0
+       .byte $A4 ; |X X  X  | $F7C1
+       .byte $A4 ; |X X  X  | $F7C2
+       .byte $E4 ; |XXX  X  | $F7C3
+       .byte $AE ; |X X XXX | $F7C4
+       .byte $EA ; |XXX X X | $F7C5
+       .byte $EE ; |XXX XXX | $F7C6
+       .byte $88 ; |X   X   | $F7C7
+       .byte $8C ; |X   XX  | $F7C8
+       .byte $88 ; |X   X   | $F7C9
+       .byte $8E ; |X   XXX | $F7CA
+       .byte $70 ; | XXX    | $F7CB
+       .byte $50 ; | X X    | $F7CC
+       .byte $10 ; |   X    | $F7CD
+       .byte $10 ; |   X    | $F7CE
+       .byte $38 ; |  XXX   | $F7CF
+       .byte $72 ; | XXX  X | $F7D0
+       .byte $12 ; |   X  X | $F7D1
+       .byte $72 ; | XXX  X | $F7D2
+       .byte $42 ; | X    X | $F7D3
+       .byte $77 ; | XXX XXX| $F7D4
+       .byte $44 ; | X   X  | $F7D5
+       .byte $4C ; | X  XX  | $F7D6
+       .byte $54 ; | X X X  | $F7D7
+       .byte $64 ; | XX  X  | $F7D8
+       .byte $44 ; | X   X  | $F7D9
+       .byte $77 ; | XXX XXX| $F7DA
+       .byte $14 ; |   X X  | $F7DB
+       .byte $76 ; | XXX XX | $F7DC
+       .byte $44 ; | X   X  | $F7DD
+       .byte $77 ; | XXX XXX| $F7DE
+LF7DF: .byte $C0,$00,$80,$00,$C0
 LF7E4: .byte $80,$40,$20,$10,$08,$04,$02,$01
 LF7EC: .byte $08,$0E,$00,$06,$36,$0C,$D0
 LF7F3: .byte $D6,$50,$77,$FF,$1E,$50,$02,$02,$02,$00,$F0,$69,$F7
