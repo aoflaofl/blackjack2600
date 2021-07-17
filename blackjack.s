@@ -239,6 +239,11 @@ LF052: LDA    #$02
 ; WSYNC is a strobe register
        STA    WSYNC
        STY    VSYNC
+
+; Now the 2600 is in VBLANK which needs to last for 37 scan lines.  The usual
+; way this is done is to set a timer to
+; count down the time.
+
        STY    VBLANK
        STA    WSYNC  ; First WSYNC
        STA    WSYNC  ; Second WSYNC
@@ -248,10 +253,6 @@ LF052: LDA    #$02
 ; After 3 WSYNCs turn off VSYNC by writing 0 into VSYNC
 
        STY    VSYNC
-
-; Now the 2600 is in VBLANK which needs to last for 37 scan lines.  The usual
-; way this is done is to set a timer to
-; count down the time.
 
 ; Store $28 (decimal 40) into the TIM64T register, which counts down the INTIM register once each
 ; 64 CPU cycles.  TODO: The math to show how many cycles/scan lines are used up.  The program will
@@ -274,6 +275,7 @@ LF052: LDA    #$02
 LF07C: AND    #$03
        STA    $AF
        BNE    LF08E
+; Read the Paddle buttons
        LDA    SWCHA
        TAY
        EOR    $E5
@@ -1374,42 +1376,42 @@ LF6FD: .byte $80 ; |X       | $F6FD
        .byte $00 ; |        | $F739
        .byte $00 ; |        | $F73A
        .byte $00 ; |        | $F73B
-       .byte $94 ; |X  X X  | $F73C
+HI:    .byte $94 ; |X  X X  | $F73C
        .byte $94 ; |X  X X  | $F73D
        .byte $F4 ; |XXXX X  | $F73E
        .byte $94 ; |X  X X  | $F73F
        .byte $95 ; |X  X X X| $F740
-       .byte $E4 ; |XXX  X  | $F741
+ST:    .byte $E4 ; |XXX  X  | $F741
        .byte $24 ; |  X  X  | $F742
        .byte $E4 ; |XXX  X  | $F743
        .byte $84 ; |X    X  | $F744
        .byte $EE ; |XXX XXX | $F745
-       .byte $EE ; |XXX XXX | $F746
+DB:    .byte $EE ; |XXX XXX | $F746
        .byte $AA ; |X X X X | $F747
        .byte $AE ; |X X XXX | $F748
        .byte $AA ; |X X X X | $F749
        .byte $EE ; |XXX XXX | $F74A
-       .byte $07 ; |     XXX| $F74B
+B:     .byte $07 ; |     XXX| $F74B
        .byte $05 ; |     X X| $F74C
        .byte $07 ; |     XXX| $F74D
        .byte $05 ; |     X X| $F74E
        .byte $07 ; |     XXX| $F74F
-       .byte $77 ; | XXX XXX| $F750
+BU:    .byte $77 ; | XXX XXX| $F750
        .byte $55 ; | X X X X| $F751
        .byte $75 ; | XXX X X| $F752
        .byte $55 ; | X X X X| $F753
        .byte $75 ; | XXX X X| $F754
-       .byte $6D ; | XX XX X| $F755
+WI:    .byte $6D ; | XX XX X| $F755
        .byte $55 ; | X X X X| $F756
        .byte $45 ; | X   X X| $F757
        .byte $45 ; | X   X X| $F758
        .byte $45 ; | X   X X| $F759
-       .byte $77 ; | XXX XXX| $F75A
+LO:    .byte $77 ; | XXX XXX| $F75A
        .byte $45 ; | X   X X| $F75B
        .byte $45 ; | X   X X| $F75C
        .byte $45 ; | X   X X| $F75D
        .byte $47 ; | X   XXX| $F75E
-       .byte $25 ; |  X  X X| $F75F
+TI:    .byte $25 ; |  X  X X| $F75F
        .byte $25 ; |  X  X X| $F760
        .byte $25 ; |  X  X X| $F761
        .byte $25 ; |  X  X X| $F762
@@ -1486,48 +1488,55 @@ LF77A: SEC
        .byte $07 ; |     XXX| $F7AF
        .byte $05 ; |     X X| $F7B0
 LF7B1: .byte $07 ; |     XXX| $F7B1
-LF7B2: .byte $3E,$31,$F0,$FE,$51
+
+; Audio Data
+
+ LF7B2: .byte $3E,$31,$F0,$FE,$51
        .byte $00 ; |        | $F7B7
        .byte $00 ; |        | $F7B8
        .byte $00 ; |        | $F7B9
        .byte $00 ; |        | $F7BA
        .byte $00 ; |        | $F7BB
-       .byte $80 ; |X       | $F7BC
+T:     .byte $80 ; |X       | $F7BC
        .byte $80 ; |X       | $F7BD
        .byte $80 ; |X       | $F7BE
        .byte $80 ; |X       | $F7BF
        .byte $C0 ; |XX      | $F7C0
-       .byte $A4 ; |X X  X  | $F7C1
+AY:    .byte $A4 ; |X X  X  | $F7C1
        .byte $A4 ; |X X  X  | $F7C2
        .byte $E4 ; |XXX  X  | $F7C3
        .byte $AE ; |X X XXX | $F7C4
        .byte $EA ; |XXX X X | $F7C5
-       .byte $EE ; |XXX XXX | $F7C6
+LE:    .byte $EE ; |XXX XXX | $F7C6
        .byte $88 ; |X   X   | $F7C7
        .byte $8C ; |X   XX  | $F7C8
        .byte $88 ; |X   X   | $F7C9
        .byte $8E ; |X   XXX | $F7CA
-       .byte $70 ; | XXX    | $F7CB
+J:     .byte $70 ; | XXX    | $F7CB
        .byte $50 ; | X X    | $F7CC
        .byte $10 ; |   X    | $F7CD
        .byte $10 ; |   X    | $F7CE
        .byte $38 ; |  XXX   | $F7CF
-       .byte $72 ; | XXX  X | $F7D0
+ST:    .byte $72 ; | XXX  X | $F7D0
        .byte $12 ; |   X  X | $F7D1
        .byte $72 ; | XXX  X | $F7D2
        .byte $42 ; | X    X | $F7D3
        .byte $77 ; | XXX XXX| $F7D4
-       .byte $44 ; | X   X  | $F7D5
+N:     .byte $44 ; | X   X  | $F7D5
        .byte $4C ; | X  XX  | $F7D6
        .byte $54 ; | X X X  | $F7D7
        .byte $64 ; | XX  X  | $F7D8
        .byte $44 ; | X   X  | $F7D9
-       .byte $77 ; | XXX XXX| $F7DA
+SE:    .byte $77 ; | XXX XXX| $F7DA
        .byte $14 ; |   X X  | $F7DB
        .byte $76 ; | XXX XX | $F7DC
        .byte $44 ; | X   X  | $F7DD
        .byte $77 ; | XXX XXX| $F7DE
-LF7DF: .byte $C0,$00,$80,$00,$C0
+E:     .byte $C0 ; |XX      | $F7DF
+       .byte $00 ; |        | $F7E0
+       .byte $80 ; |X       | $F7E1
+       .byte $00 ; |        | $F7E2
+       .byte $C0 ; |xx      | $F7E3
 LF7E4: .byte $80,$40,$20,$10,$08,$04,$02,$01
 LF7EC: .byte $08,$0E,$00,$06,$36,$0C,$D0
 LF7F3: .byte $D6,$50,$77,$FF,$1E,$50,$02,$02,$02,$00,$F0,$69,$F7
