@@ -59,7 +59,8 @@ START:
        SEI
 
 ; Clear Decimal Arithmetic flag. This means the math commands will assume
-; binary arithmetic and not decimal arithmetic.
+; binary arithmetic and not decimal arithmetic.  The program switches to
+; Binary Coded Decimal mode at various times.
 
        CLD
 
@@ -506,7 +507,13 @@ LF1F6: LDY    #$00
        CPY    $C8
        BCS    LF214
        INC    $C8
+
+;********************************
+;* Set Binary Coded Decimal mode.
+;********************************
+
 LF214: SED
+
 LF215: STA    WSYNC
 ; Scan line 37
        LDA    ($B4),Y
@@ -516,6 +523,10 @@ LF215: STA    WSYNC
        LDX    $AF
 
 ; Read the Paddle
+; The way the 2600 handles paddles is to count (the number of scanlines) it takes for the
+; paddle to discharge.  When it does the high bit of the INPT register becomes 1.
+; The next 3 instructions sets the carry flag if the paddle has not discharged yet.
+
        LDA    INPT0,X
        EOR    #$FF
        ASL
@@ -534,6 +545,9 @@ LF215: STA    WSYNC
        STA    GRP0
        LDA    $BA
        STA    COLUP0
+
+; Use the Carry Bit to add $C9 to $C2 in BCD mode.
+
        LDA    $C2
        ADC    $C9
        STA    $C2
@@ -548,6 +562,11 @@ LF215: STA    WSYNC
        STA    COLUP0
        STX    GRP0
        BCS    LF215
+
+;*********************
+;* Clear Decimal Flag.
+;*********************
+
        CLD
        DEC    $C6
        BMI    LF265
@@ -885,6 +904,11 @@ LF4AF: INX
        RTS
 
 LF4BD: LDX    #$02
+
+;********************************
+;* Set Binary Coded Decimal mode.
+;********************************
+
 LF4BF: SED
        LDA    $F4,X
        ASL
@@ -896,6 +920,11 @@ LF4BF: SED
        LDA    $89,X
        ADC    #$00
        STA    $89,X
+
+;*********************
+;* Clear Decimal Flag.
+;*********************
+
        CLD
        LDA    $86,X
        ADC    #$00
@@ -909,6 +938,11 @@ LF4E3: SBC    #$01
        LDA    $89,X
        SBC    #$01
        STA    $89,X
+
+;*********************
+;* Clear Decimal Flag.
+;*********************
+
        CLD
        LDA    $86,X
        SBC    #$00
@@ -943,6 +977,11 @@ LF51B: DEX
 LF528: AND    $E7
        ASL
        STA    AUDC1
+
+;*********************
+;* Clear Decimal Flag.
+;*********************
+
        CLD
        RTS
 
@@ -1016,8 +1055,18 @@ LF58E: CLC
        LDA    $8F,X
        JSR    LF271
        CLC
+
+;********************************
+;* Set Binary Coded Decimal mode.
+;********************************
+
        SED
        ADC    $8F,X
+
+;*********************
+;* Clear Decimal Flag.
+;*********************
+
        CLD
        STA    $8F,X
        LDA    #$04
@@ -1062,11 +1111,21 @@ LF5C8: LDA    LF663,Y
        EOR    #$03
        PHP
        BNE    LF5FE
+
+;********************************
+;* Set Binary Coded Decimal mode.
+;********************************
+
        SED
        CLC
        LDA    $8F,X
        ADC    $8F,X
        STA    $8F,X
+
+;*********************
+;* Clear Decimal Flag.
+;*********************
+
        CLD
 LF5FE: LDA    #$05
        LDY    #$01
