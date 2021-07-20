@@ -32,6 +32,7 @@
 ; $86 = P1's 1st 2 digits in BCD of chip count
 ; $89 = P1's 2nd 2 digits in BCD of chip count
 ; $8f = P1's chips bet in BCD
+; $AF = Number of players?  Or current player being processed.
 
 ; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
 ; less expensive) variant of the 6502 named the 6507, but the instruction set
