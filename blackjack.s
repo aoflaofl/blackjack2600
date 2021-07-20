@@ -27,6 +27,12 @@
 ; sha256sum.exe "Blackjack.bin"
 ; 8333eb40ab694f123f4d3335df8fdde4ea0aa1cf2b35ad89a1aa526ec1ae5163 *Blackjack.bin
 
+;
+; RAM Map:
+; $86 = P1's 1st 2 digits in BCD of chip count
+; $89 = P1's 2nd 2 digits in BCD of chip count
+; $8f = P1's chips bet in BCD
+
 ; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
 ; less expensive) variant of the 6502 named the 6507, but the instruction set
 ; is the same.
@@ -220,7 +226,7 @@ LF03F: DEX           ; Takes 2 CPU cycles
 
        STA    WSYNC
 
-; Cause the HMoves to happen. Now P1 is positioned at 39-3=36 pixels and P0	 is at 48-4=44
+; Cause the HMoves to happen. Now P1 is positioned at 39-3=36 pixels and P0 is at 48-4=44
 ; pixels.  Strobing HMOVE should normally take place immediately after strobing
 ; WSYNC.
 
@@ -389,10 +395,13 @@ LF13F: STX    COLUP0
        LDY    #$10
 LF145: LDA    VSYNC,X
        STA    $B2
+; multiply by 5
        ASL
        ASL
        ADC    $B2
+; Add $B0
        ADC    $B0
+; multiply by 2
        ASL
        CMP    #$60
        ROR
