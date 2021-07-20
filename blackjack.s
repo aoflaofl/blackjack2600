@@ -529,6 +529,8 @@ LF215: STA    WSYNC
 ; paddle to discharge.  When it does the high bit of the INPT register becomes 1.
 ; The next 3 instructions sets the carry flag if the paddle has not discharged yet.
 
+; X holds the player number.
+
        LDA    INPT0,X
        EOR    #$FF
        ASL
