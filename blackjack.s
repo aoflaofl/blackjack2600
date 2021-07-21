@@ -29,10 +29,11 @@
 
 ;
 ; RAM Map:
-; $86 = P1's 1st 2 digits in BCD of chip count
-; $89 = P1's 2nd 2 digits in BCD of chip count
-; $8f = P1's chips bet in BCD
+; $86 = P1's 1st 2 digits (in BCD) of chip count
+; $89 = P1's 2nd 2 digits (in BCD) of chip count
+; $8f = P1's chips bet (in BCD)
 ; $AF = Number of players?  Or current player being processed.
+; $C2 = Holds the next value of the bet
 
 ; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
 ; less expensive) variant of the 6502 named the 6507, but the instruction set
@@ -764,7 +765,9 @@ LF3A0: ORA    $D1
        LSR
        LDA    $C2
        BCS    LF3C1
+; Load hundreds digits of chip count
        LDY    $86,X
+; If it's 0 then skip to LF3B3
        BNE    LF3B3
        CMP    $89,X
        BCC    LF3B3
@@ -1125,6 +1128,10 @@ LF5C8: LDA    LF663,Y
        EOR    #$03
        PHP
        BNE    LF5FE
+
+;
+; Double the Bet for player X
+;
 
 ;********************************
 ;* Set Binary Coded Decimal mode.
