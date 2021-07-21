@@ -27,6 +27,8 @@
 ; sha256sum.exe "Blackjack.bin"
 ; 8333eb40ab694f123f4d3335df8fdde4ea0aa1cf2b35ad89a1aa526ec1ae5163 *Blackjack.bin
 
+; TODO: Move memory maps closer to code where they are used.
+; TODO: Add Hashtags for topics like #PADDLES or #RNG
 ;
 ; RAM Map:
 ; $86 = P1's 1st 2 digits (in BCD) of chip count
@@ -249,8 +251,14 @@ LF03F: DEX           ; Takes 2 CPU cycles
 ; Start Frame
 
 LF052: LDA    #$02
+
+; Y is set to $82 because bit 7 = 1, and when stored in VBLANK will trigger the paddle capacitors
+; to discharge so they can be timed to get the paddle's position.
+
        LDY    #$82
+
 ; WSYNC is a strobe register
+
        STA    WSYNC
        STY    VSYNC
 
@@ -268,12 +276,12 @@ LF052: LDA    #$02
 
        STY    VSYNC
 
+; Start Frame
+
 ; Store $28 (decimal 40) into the TIM64T register, which counts down the INTIM register once each
 ; 64 CPU cycles.  TODO: The math to show how many cycles/scan lines are used up.  The program will
 ; continue running.  Later the INTIM register will be checked until it is 0 which means the timer is
 ; done.
-
-; Start Frame
 
        LDX    #$28
        STX    TIM64T
@@ -345,7 +353,8 @@ WaitForTimer:
        LDA    INTIM
        BNE    WaitForTimer
 
-; Then store 0 in VBLANK (because A will have 0 in it when the loop completes) to tell the TV to start displaying again.
+; Then store 0 in VBLANK (because A will have 0 in it when the loop completes) to tell the TV to start
+; displaying again.
 
        STA    VBLANK
 
