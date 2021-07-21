@@ -33,7 +33,13 @@
 ; $89 = P1's 2nd 2 digits (in BCD) of chip count
 ; $8f = P1's chips bet (in BCD)
 ; $AF = Number of players?  Or current player being processed.
+; $B2,$B3 = Pointer to center display graphics
+; $BA,$BB = Pointer to tens part of center display
+; $BC,$BD = ones digit of center player.
+; $BE,$BF = Pointer to left player's chip display
 ; $C2 = Holds the next value of the bet
+; $C4,$C5 = left part of center column
+; $C6,$C7 = Pointer to left player's chips hundreds and question mark
 
 ; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
 ; less expensive) variant of the 6502 named the 6507, but the instruction set
@@ -440,6 +446,9 @@ LF15F: LDA    VSYNC,X
        DEY
        BPL    LF15F
        STX    $C8
+
+; Start displaying chips
+
        LDY    #$04
        LDA    ($B8),Y
        ORA    ($B6),Y
