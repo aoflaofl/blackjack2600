@@ -457,14 +457,18 @@ LF15F: LDA    VSYNC,X
        STX    $C8
 
 ; Start displaying chips
+; RAM Map
+; $C6,$C7 = pointer to left part of message
+; $C0,$C1 = pointer to right side of message
 
        LDY    #$04
        LDA    ($B8),Y
        ORA    ($B6),Y
        PHA
+; Load left part of message
        LDA    ($C6),Y
        STA    WSYNC
-       BCC    LF19E
+       BCC    LF19E ; When not to take this branch?
 LF197: LDA    ($B8),Y
        ORA    ($B6),Y
        PHA
@@ -474,6 +478,7 @@ LF19E: STA    GRP1
 ; TODO: Has something to do with the count up/down for wins/losses.
 ; Load the digit data.
        LDA    ($C0),Y
+; Right part of message.
        ORA    ($BE),Y
        STA    GRP0
        LDA    ($C4),Y
@@ -492,6 +497,7 @@ LF19E: STA    GRP1
        PHA
        LDA    ($C6),Y
        STA    GRP1
+; Right side of message
        LDA    ($C0),Y
        ORA    ($BE),Y
        STA    GRP0
@@ -545,12 +551,29 @@ LF1F6: LDY    #$00
 
 LF214: SED
 
-LF215: STA    WSYNC
-; Scan line 37
+; In display of cards.
+; RAM MAP:
+; $AF Holds current player number?
+; $B0,$B1 right card
+; $B2,$B3 center card
+; $B4,$B5 left most card
+; $B6 color of right card
+; $B8 color of center card
+; $BA color of left card
+
+; Start 2 line kernel.
+
+LF215: STA    WSYNC ; Scan line 37
+
+;**********************
+;* First line of kernel
+;**********************
+
        LDA    ($B4),Y
        STA    GRP0
        LDA    $BA
        STA    COLUP0
+
        LDX    $AF
 
 ; Read the Paddle
@@ -559,30 +582,36 @@ LF215: STA    WSYNC
 ; The next 3 instructions sets the carry flag if the paddle has not discharged yet.
 
 ; X holds the player number.
-
+; Read the Paddle for player X.  If it has discharged then the D7 bit will be 0.
        LDA    INPT0,X
+; Invert A, making D7 1 if it is 0.
        EOR    #$FF
+; Shift D7 into the Carry bit.
        ASL
+	   
+; Put the image data for right card into X
+
        LDA    ($B0),Y
        TAX
+
+; Put center graphics and color into GRP0 and COLUP0
+
        LDA    ($B2),Y
        STA    GRP0
        LDA    $B8
        STA    COLUP0
+
+; Store right cards image and color data into COLUP0 and GRP0
+
        LDA    $B6
        STA    COLUP0
        STX    GRP0
        DEY
        STA    WSYNC
 
-; In display of cards.
-; RAM MAP:
-; $B0,$B1 right card
-; $B2,$B3 center card
-; $B4,$B5 left most card
-; $B6 color of right card
-; $B8 color of center card
-; $BA color of left card
+;***********************
+;* Second line of kernel
+;***********************
 
 ; Load left card's image and color data and store in GRP0 and COLUP0.
 
@@ -601,7 +630,10 @@ LF215: STA    WSYNC
 ; Load the right card's image data and put in X register.
 
        LDA    ($B0),Y
-       CPY    #$81 ; TODO: Why is this here?
+
+; Sets C flag if Y >= #$81, unsets it otherwise.
+
+       CPY    #$81 ; TODO: Why do this here?
        TAX
 
 ; Load center card's image and color data and store in GRP0 and COLUP0.
