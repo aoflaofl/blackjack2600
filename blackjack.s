@@ -574,26 +574,54 @@ LF215: STA    WSYNC
        STX    GRP0
        DEY
        STA    WSYNC
+
+; In display of cards.
+; RAM MAP:
+; $B0,$B1 right card
+; $B2,$B3 center card
+; $B4,$B5 left most card
+; $B6 color of right card
+; $B8 color of center card
+; $BA color of left card
+
+; Load left card's image and color data and store in GRP0 and COLUP0.
+
        LDA    ($B4),Y
        STA    GRP0
        LDA    $BA
        STA    COLUP0
 
 ; Use the Carry Bit to add $C9 to $C2 in BCD mode.
+; I believe this code is involved in the paddle reading.
 
        LDA    $C2
        ADC    $C9
        STA    $C2
+
+; Load the right card's image data and put in X register.
+
        LDA    ($B0),Y
-       CPY    #$81
+       CPY    #$81 ; TODO: Why is this here?
        TAX
+
+; Load center card's image and color data and store in GRP0 and COLUP0.
+ 
        LDA    ($B2),Y
        STA    GRP0
        LDA    $B8
        STA    COLUP0
+
+; Load color data for right card and store into COLUP0
+
        LDA    $B6
        STA    COLUP0
+
+; Store X (which contains right card's image data) into GRP0
+
        STX    GRP0
+
+; Go back and do it again.  Presumably CPY opcode above causes this to branch.
+
        BCS    LF215
 
 ;*********************
