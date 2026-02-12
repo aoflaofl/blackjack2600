@@ -81,7 +81,7 @@ START:
        CLD
 
 ; Simple Atari 2600 memory map:
-;   TIA - Telivision Interface Adapter Chip
+;   TIA - Television Interface Adapter chip
 ;     0000 - 002C -- TIA (write)
 ;     0030 - 003D -- TIA (read)
 ;   RIOT - RAM, IO, Timers Chip
@@ -146,7 +146,7 @@ RAMINIT:
 
 ; Init Playfield graphics
 ;
-;  PF0   PF1       PF1
+;  PF0   PF1       PF2
 ; 4567 76543210 01234567
 ; 0000 00000001 10000001
 
