@@ -1,34 +1,66 @@
-### Disassembly of Atari 2600 Blackjack
+# Disassembly of Atari 2600 Blackjack
 
-I read on Reddit that someone thought the Blackjack game on the Atari 2600 cheated by dealing itself winning hands when it was losing.
+## 1) Project overview
 
-I've heard rumors like this before.  For instance my brother swore the Backgammon game on the Atari 2600 rolled itself double sixes more frequently near the end of the game.
+This project investigates a long-running claim that Atari 2600 **Blackjack** cheats by dealing itself stronger hands when it is behind.
 
-Blackjack is only 2k of 6502 machine code and a chunk of that is for graphics, so I'm wondering if there is any room left over to add a cheating feature.
+The central question is: **does the game logic intentionally bias outcomes, or do players perceive bias from limited pseudo-randomness and shuffle behavior in a 2 KB ROM?**
 
-My guess is the code that makes up the random number generator and the shuffling algorithm (both difficult things to get right) might not be very good in such a small space.
+Because the game is implemented in a very small 6502 codebase, this repository focuses on annotated reverse engineering so the claim can be tested against the actual instructions rather than anecdotal reports.
 
-Hopefully annotating this code will find out.  
+## 2) Reproducible workflow
 
-Some technical details:
+### Tools
 
-The code was generated using DiStella with the arguments `-pabf -cblackjack.cfg`
+- DiStella (disassembly)
+- DASM (assembly)
+- `sha256sum` (artifact verification)
 
-To rebuild it, use DASM with the `-f3` argument: `dasm blackjack.s -f3 -oBlackjack.bin`
+### Commands
 
-## Review notes and suggested improvements
+Run from repository root.
 
-While reading through the current annotations, I found a few documentation mistakes and opportunities to improve the reverse-engineering notes:
+1. Disassembly reference used in this repo:
 
-1. Keep command lines consistent across files.
-   - The old README used `-pafs`, but the disassembly header in `blackjack.s` records `-pabf -cblackjack.cfg`.
-   - The old README build command also had a filename typo (`blacjack.s`).
+```bash
+DiStella -pabf -cblackjack.cfg Blackjack.bin
+```
 
-2. Tighten technical wording in comments.
-   - Prefer "Television Interface Adapter" over misspellings.
-   - In the playfield bit layout sketch, the register label should be `PF0 PF1 PF2`, not `PF0 PF1 PF1`.
+2. Rebuild ROM from annotated source:
 
-3. Improve reproducibility and confidence in analysis.
-   - Add a short "verification" section showing the expected ROM hash after rebuilding.
-   - Add a running table of resolved RAM variables (address, purpose, evidence), so uncertain notes such as "$AF = Number of players?" can be systematically confirmed.
-   - Split high-level narrative (rumor/background) from technical workflow (tool versions, commands, and outputs) to make the project easier to follow for future contributors.
+```bash
+dasm blackjack.s -f3 -oBlackjack.bin
+```
+
+3. Verify output artifact hash:
+
+```bash
+sha256sum Blackjack.bin
+```
+
+### Expected output artifacts
+
+- `blackjack.s`: annotated disassembly source tracked in this repo.
+- `Blackjack.bin`: rebuilt ROM image.
+- `sha256sum` output line for `Blackjack.bin` used as a reproducibility check.
+
+## 3) Analysis status tracker
+
+### Confirmed
+
+- The canonical DiStella invocation for this project is `-pabf -cblackjack.cfg`.
+- The canonical rebuild command is `dasm blackjack.s -f3 -oBlackjack.bin`.
+- The investigation scope is the gameplay logic, especially RNG/shuffle behavior, within a 2 KB ROM budget.
+
+### Open questions
+
+- Does the dealer logic contain any explicit branch path that conditionally improves dealer outcomes when trailing?
+- How uniform is the RNG output sequence over practical play windows?
+- Is the shuffle/deal routine unbiased with respect to player-vs-dealer hand quality?
+- Which currently uncertain RAM variable labels (for example, `$AF`) can be elevated to confirmed meanings with instruction-level evidence?
+
+## Open documentation tasks
+
+Ongoing review notes and follow-up improvements are tracked in:
+
+- [`docs/analysis-roadmap.md`](docs/analysis-roadmap.md)
