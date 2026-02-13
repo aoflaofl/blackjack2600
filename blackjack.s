@@ -34,14 +34,14 @@
 ; $86 = P1's 1st 2 digits (in BCD) of chip count
 ; $89 = P1's 2nd 2 digits (in BCD) of chip count
 ; $8f = P1's chips bet (in BCD)
-; $AF = Number of players?  Or current player being processed.
+; $AF = active player selector (see docs/ram-map.md)
 ; $B2,$B3 = Pointer to center display graphics
 ; $BA,$BB = Pointer to tens part of center display
 ; $BC,$BD = ones digit of center player.
 ; $BE,$BF = Pointer to left player's chip display
-; $C2 = Holds the next value of the bet
+; $C2 = paddle/bet accumulator role is tracked in docs/ram-map.md
 ; $C4,$C5 = left part of center column
-; $C6,$C7 = Pointer to left player's chips hundreds and question mark
+; $C6,$C7 = left-side display pointer (with later aliasing); see docs/ram-map.md
 
 ; Tell DASM which processor is used.  The Atari 2600 uses a less functional (and
 ; less expensive) variant of the 6502 named the 6507, but the instruction set
@@ -137,7 +137,7 @@ RAMINIT:
 
        STY    AUDV0
 
-; Init RAM and do RNG calculations?
+; Init RAM and run startup state update routines.
 
        JSR    LF3DD
        JSR    LF2E9
@@ -553,7 +553,7 @@ LF214: SED
 
 ; In display of cards.
 ; RAM MAP:
-; $AF Holds current player number?
+; $AF active player selector; details in docs/ram-map.md
 ; $B0,$B1 right card
 ; $B2,$B3 center card
 ; $B4,$B5 left most card
